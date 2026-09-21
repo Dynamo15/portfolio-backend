@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class SocialLinkBase(BaseModel):
@@ -15,7 +15,7 @@ class SocialLinkBase(BaseModel):
         description="Icon identifier used by the frontend."
     )
     
-    url: AnyUrl = Field(
+    url: HttpUrl = Field(
         description="URL or contact link"
     )
     
@@ -33,8 +33,12 @@ class SocialLinkCreate(SocialLinkBase):
     pass
 
 
-class SocialLinkUpdate(SocialLinkBase):
-    pass
+class SocialLinkUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100, strip_whitespace=True)
+    icon: str | None = Field(default=None, min_length=1, max_length=100, strip_whitespace=True)
+    url: HttpUrl | None = None
+    display_order: int | None = Field(default=None, ge=0)
+    is_active: bool | None = None
 
 
 class SocialLinkResponse(SocialLinkBase):
@@ -43,4 +47,3 @@ class SocialLinkResponse(SocialLinkBase):
     updated_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
-    

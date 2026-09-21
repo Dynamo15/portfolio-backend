@@ -20,7 +20,7 @@ class SocialLinkRepository:
 
     def create(self, db: Session, social_link: SocialLinkCreate):
         db_social_link = SocialLink(
-            **social_link.model_dump()
+            **social_link.model_dump(mode="json")
         )
 
         db.add(db_social_link)
@@ -40,7 +40,7 @@ class SocialLinkRepository:
         if not db_social_link:
             return None
 
-        for field, value in social_link.model_dump().items():
+        for field, value in social_link.model_dump(exclude_unset=True, mode="json").items():
             setattr(db_social_link, field, value)
 
         db.commit()

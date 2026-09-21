@@ -1,14 +1,15 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy import CheckConstraint, Column, DateTime, Integer, String, Text
 
 from app.database.database import Base
 
 
 class Profile(Base):
     __tablename__ = "profiles"
+    __table_args__ = (CheckConstraint("id = 1", name="single_profile_id"),)
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, default=1)
 
     # Hero
     greeting_es = Column(String(100), nullable=False)
@@ -42,9 +43,9 @@ class Profile(Base):
     resume_filename = Column(String(255), nullable=True)
     resume_url = Column(String(255), nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )

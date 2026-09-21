@@ -1,16 +1,25 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from collections.abc import Generator
+
+from sqlalchemy import URL, create_engine
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import settings
 
-DATABASE_URL = (
-    f"postgresql+psycopg://"
-    f"{settings.DB_USER}:{settings.DB_PASSWORD}"
-    f"@{settings.DB_HOST}:{settings.DB_PORT}"
-    f"/{settings.DB_NAME}"
-)
+def _database_url() -> str:
+    if settings.DATABASE_URL:
+        return settings.DATABASE_URL
 
-engine = create_engine(DATABASE_URL)
+    return URL.create(
+        "postgresql+psycopg",
+        username=settings.DB_USER,
+        password=settings.DB_PASSWORD,
+        host=settings.DB_HOST,
+        port=settings.DB_PORT,
+        database=settings.DB_NAME,
+    ).render_as_string(hide_password=False)
+
+DATABASE_URL = _database_url()
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -18,9 +27,10 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db

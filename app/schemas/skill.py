@@ -5,19 +5,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class SkillBase(BaseModel):
     name: str = Field(
-        min_length=2,
+        min_length=1,
         max_length=100,
         description="Technology name."
     )
 
     icon: str = Field(
-        min_length=2,
+        min_length=1,
         max_length=100,
         description="Technology icon identifier."
     )
 
     display_order: int = Field(
-        gt=0,
+        ge=0,
         description="Display order."
     )
 
@@ -25,8 +25,10 @@ class SkillCreate(SkillBase):
     pass
 
 
-class SkillUpdate(SkillBase):
-    pass
+class SkillUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100, strip_whitespace=True)
+    icon: str | None = Field(default=None, min_length=1, max_length=100, strip_whitespace=True)
+    display_order: int | None = Field(default=None, ge=0)
 
 
 class SkillResponse(SkillBase):

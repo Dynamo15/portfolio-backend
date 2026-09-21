@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -45,7 +45,12 @@ def create_skill(skill: SkillCreate, db: Session = Depends(get_db)):
     return repository.create(db, skill)
 
 
-@router.get("/", response_model=list[SkillResponse])
+@router.get(
+    "/",
+    response_model=list[SkillResponse],
+    summary="List skills",
+    description="Returns all skills ordered by display order.",
+)
 def get_skills(db: Session = Depends(get_db)):
     return repository.get_all(db)
 
@@ -83,7 +88,11 @@ def update_skill(
     skill: SkillUpdate,
     db: Session = Depends(get_db),
 ):
-    existing_skill = repository.get_by_name(db, skill.name)
+    current_skill = repository.get_by_id(db, skill_id)
+    if not current_skill:
+        raise HTTPException(status_code=404, detail="Skill not found.")
+
+    existing_skill = repository.get_by_name(db, skill.name) if skill.name else None
 
     if existing_skill and existing_skill.id != skill_id:
         raise HTTPException(
@@ -93,29 +102,24 @@ def update_skill(
 
     updated_skill = repository.update(db, skill_id, skill)
 
-    if not updated_skill:
-        raise HTTPException(
-            status_code=404,
-            detail="Skill not found."
-        )
-
     return updated_skill
 
 
 @router.delete(
     "/{skill_id}",
-    response_model=SkillResponse,
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     summary="Delete a skill",
     description="Deletes a technology from the portfolio.",
     responses={
         404: {"description": "Skill not found."}
     },
 )
-def delete_skill(skill_id: int, db: Session = Depends(get_db)):
+def delete_skill(skill_id: int, db: Session = Depends(get_db)) -> Response:
     deleted_skill = repository.delete(db, skill_id)
 
     if not deleted_skill:
         raise HTTPException(status_code=404, detail="Skill not found")
 
-    return deleted_skill
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 

@@ -15,7 +15,7 @@ class ProfileRepository:
         profile: Profile,
         data: ProfileUpdate,
     ):
-        for field, value in data.model_dump().items():
+        for field, value in data.model_dump(exclude_unset=True, mode="json").items():
             setattr(profile, field, value)
 
         db.commit()

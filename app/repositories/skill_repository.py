@@ -7,7 +7,7 @@ from app.schemas.skill import SkillCreate, SkillUpdate
 class SkillRepository:
 
     def create(self, db: Session, skill: SkillCreate):
-        db_skill = Skill(**skill.model_dump())
+        db_skill = Skill(**skill.model_dump(mode="json"))
 
         db.add(db_skill)
         db.commit()
@@ -47,7 +47,7 @@ class SkillRepository:
         if not db_skill:
             return None
 
-        for key, value in skill.model_dump().items():
+        for key, value in skill.model_dump(exclude_unset=True, mode="json").items():
             setattr(db_skill, key, value)
 
         db.commit()
@@ -65,5 +65,3 @@ class SkillRepository:
         db.commit()
 
         return db_skill
-    
-    
